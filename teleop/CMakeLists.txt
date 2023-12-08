@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(ur_moveit_hand)
+project(teleop)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,12 +8,11 @@ project(ur_moveit_hand)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-message_generation
-robot_msgs
-roscpp
-rospy
-sensor_msgs
-moveit_comm
+  cartesian_state_msgs
+  rospy
+  sensor_msgs
+  std_msgs
+  trajectory_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -73,7 +72,7 @@ moveit_comm
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   sd_msgs#   std_msgs
+#   cartesian_state_msgs#   sensor_msgs#   std_msgs#   trajectory_msgs
 # )
 
 ################################################
@@ -107,11 +106,9 @@ moveit_comm
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES ur_moveit_hand
-#  CATKIN_DEPENDS roscpp rospy sd_msgs std_msgs
+#  LIBRARIES teleop
+#  CATKIN_DEPENDS cartesian_state_msgs rospy sensor_msgs std_msgs trajectory_msgs
 #  DEPENDS system_lib
-CATKIN_DEPENDS 
-geometry_msgs message_generation robot_msgs roscpp rospy 
 )
 
 ###########
@@ -120,23 +117,14 @@ geometry_msgs message_generation robot_msgs roscpp rospy
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-
-
 include_directories(
 # include
-  ${catkin_INCLUDE_DIRS}/include
+  ${catkin_INCLUDE_DIRS}
 )
-include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
-add_executable(slave_control src/slave_control.cpp)
-
-target_link_libraries(
-  slave_control
-  ${catkin_LIBRARIES}
-)
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/ur_moveit_hand.cpp
+#   src/${PROJECT_NAME}/teleop.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -147,7 +135,7 @@ target_link_libraries(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/ur_moveit_hand_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/teleop_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -211,7 +199,7 @@ target_link_libraries(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_ur_moveit_hand.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_teleop.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
