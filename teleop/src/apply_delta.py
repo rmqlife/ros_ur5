@@ -24,29 +24,36 @@ current_robot_joints = []
 
 def robot_joint_callback(data):
     # Store the received joint states in the global variables
-    global joint_names, current_robot_joints, initial_robot_joints, delta_robot_joints
+    global joint_names, current_robot_joints, initial_robot_joints
     joint_names = data.name
     current_robot_joints = np.array(data.position)
+
 
     if initial_robot_joints is None:
         initial_robot_joints = current_robot_joints.copy()
         rospy.loginfo("Initial Robot States: %s", initial_robot_joints)
         return
 
-    delta_robot_joints = current_robot_joints - initial_robot_joints
     pass
 
+def swap_order(i, j, k):
+    i[j], i[k] = i[k], i[j]
+    return i
+
+def reverse_sign(i, j):
+    i[j] = -i[j]
+    return i
+
 def omni_joint_callback(data):
-    global initial_omni_joints, delta_omni_joints, current_omni_joints
+    global initial_omni_joints, current_omni_joints
     current_omni_joints = np.array(data.position)
+
 
     if initial_omni_joints is None:
         initial_omni_joints = current_omni_joints.copy()
         rospy.loginfo("Initial Omni States: %s", initial_omni_joints)
         return
 
-
-    delta_omni_joints = current_omni_joints - initial_omni_joints
     pass
 
 def publish_joint_trajectory(pub, joint_positions):
@@ -99,16 +106,31 @@ if __name__ == '__main__':
             print("runnning")
 
             print("robot at", rad2deg(current_robot_joints))
+            delta_robot_joints = current_robot_joints - initial_robot_joints
             print("robot delta is", rad2deg(delta_robot_joints))
 
             print("omni at", rad2deg(current_omni_joints))
+            delta_omni_joints = current_omni_joints - initial_omni_joints
             print('omni delta is', rad2deg(delta_omni_joints))
+
+
             # apply the delta to robot:
+            # desired robot_joint
+            # switch the unwanted order:
+            delta_omni_joints = swap_order(delta_omni_joints, j=0, k=2)
+            delta_omni_joints = swap_order(delta_omni_joints, j=3, k=4)
+            
+            delta_omni_joints = reverse_sign(delta_omni_joints, j=0)
+            # delta_omni_joints = reverse_sign(delta_omni_joints, j=2)
+            # delta_omni_joints = reverse_sign(delta_omni_joints, j=3)
+            delta_omni_joints = reverse_sign(delta_omni_joints, j=1)
+
+            
+            robot_joints = initial_robot_joints + delta_omni_joints
             
             
-            
-            # publish_joint_trajectory(pub, joint_positions)
-            rospy.sleep(0.2)
+            publish_joint_trajectory(pub, robot_joints)
+            rospy.sleep(0.1)
 
     except rospy.ROSInterruptException:
         pass
