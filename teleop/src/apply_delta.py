@@ -3,13 +3,9 @@ import rospy
 import numpy as np
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from control_msgs.msg import FollowJointTrajectoryActionGoal
-from actionlib_msgs.msg import GoalStatus
 import sys
-from util import rad2deg, deg2rad
-
-
-
+from util import rad2deg, deg2rad, swap_order, reverse_sign
+from shake import publish_joint_trajectory
 
 # Global variable to store joint names and positions
 joint_names = []
@@ -28,7 +24,6 @@ def robot_joint_callback(data):
     joint_names = data.name
     current_robot_joints = np.array(data.position)
 
-
     if initial_robot_joints is None:
         initial_robot_joints = current_robot_joints.copy()
         rospy.loginfo("Initial Robot States: %s", initial_robot_joints)
@@ -36,18 +31,9 @@ def robot_joint_callback(data):
 
     pass
 
-def swap_order(i, j, k):
-    i[j], i[k] = i[k], i[j]
-    return i
-
-def reverse_sign(i, j):
-    i[j] = -i[j]
-    return i
-
 def omni_joint_callback(data):
     global initial_omni_joints, current_omni_joints
     current_omni_joints = np.array(data.position)
-
 
     if initial_omni_joints is None:
         initial_omni_joints = current_omni_joints.copy()
@@ -55,35 +41,6 @@ def omni_joint_callback(data):
         return
 
     pass
-
-def publish_joint_trajectory(pub, joint_positions):
-    if not joint_names:
-        rospy.logwarn("No joint names available yet. Waiting for joint_states message.")
-        return
-
-    if len(joint_positions) != len(joint_names):
-        rospy.logerr("Joint positions do not match the number of joint names.")
-        return
-
-    # Create a JointTrajectory message
-    joint_traj = JointTrajectory()
-
-    # Set the joint names from the received message
-    joint_traj.joint_names = joint_names
-
-    # Create a JointTrajectoryPoint for the desired joint positions
-    point = JointTrajectoryPoint()
-    point.positions = joint_positions
-
-    # Set the time from start for this point (you can adjust this)
-    point.time_from_start = rospy.Duration(0.1)  # 0.1 seconds between each point
-
-    # Append the JointTrajectoryPoint to the trajectory
-    joint_traj.points.append(point)
-
-    # Publish the JointTrajectory message
-    pub.publish(joint_traj)
-
 
 if __name__ == '__main__':
     try:
@@ -129,7 +86,7 @@ if __name__ == '__main__':
             robot_joints = initial_robot_joints + delta_omni_joints
             
             
-            publish_joint_trajectory(pub, robot_joints)
+            publish_joint_trajectory(pub, joint_names, robot_joints)
             rospy.sleep(0.1)
 
     except rospy.ROSInterruptException:
