@@ -1,0 +1,4 @@
+<launch>
+<node name="sensor_output" pkg="sunrise"  type="sensor"   output="screen">
+</node>
+</launch>

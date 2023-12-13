@@ -5,6 +5,10 @@ from sensor_msgs.msg import JointState
 from util import rad2deg, deg2rad  # Import your rad2deg and deg2rad functions
 from shake import publish_joint_trajectory
 
+# reset pose
+RESET_POSE = [90, -90, -180, 180, 270, 90]
+
+
 # Global variables for joint names and positions
 joint_names = []
 current_joint_positions = []
@@ -31,8 +35,7 @@ if __name__ == '__main__':
 
         publish_joint_trajectory(pub, joint_names, deg2rad(current_joint_degrees))
         rospy.sleep(0.5)
-        goal_degrees = [90, -90, -180, 180, 270, 90]
-        publish_joint_trajectory(pub, joint_names,  deg2rad(goal_degrees))
+        publish_joint_trajectory(pub, joint_names,  deg2rad(RESET_POSE))
         rospy.sleep(0.5)        
     except rospy.ROSInterruptException:
         pass
