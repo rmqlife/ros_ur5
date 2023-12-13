@@ -11,7 +11,6 @@ from shake import publish_joint_trajectory
 joint_names = []
 ur5_joint_publisher = None
 
-
 # Define a global variable to store the initial joint positions
 initial_omni_joints = None
 current_omni_joints = []
@@ -70,21 +69,15 @@ if __name__ == '__main__':
             delta_omni_joints = current_omni_joints - initial_omni_joints
             print('omni delta is', rad2deg(delta_omni_joints))
 
-
-            # apply the delta to robot:
-            # desired robot_joint
             # switch the unwanted order:
             delta_omni_joints = swap_order(delta_omni_joints, j=0, k=2)
             delta_omni_joints = swap_order(delta_omni_joints, j=3, k=4)
             
             delta_omni_joints = reverse_sign(delta_omni_joints, j=0)
-            # delta_omni_joints = reverse_sign(delta_omni_joints, j=2)
-            # delta_omni_joints = reverse_sign(delta_omni_joints, j=3)
             delta_omni_joints = reverse_sign(delta_omni_joints, j=1)
-
+            # delta_omni_joints = reverse_sign(delta_omni_joints, j=2)
             
             robot_joints = initial_robot_joints + delta_omni_joints
-            
             
             publish_joint_trajectory(pub, joint_names, robot_joints)
             rospy.sleep(0.1)
