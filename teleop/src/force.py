@@ -1,56 +1,52 @@
 #!/usr/bin/env python
 
 import rospy
-from sunrise.sriCommDefine import CSRICommManager
+import numpy as np
 from geometry_msgs.msg import WrenchStamped
-import time
-import sys
 
-WRENCH_TOPIC = "/phantom/phantom/force_feedback"
+force_msg = None
+# Define the valid force range
+MIN_FORCE = -10.0
+MAX_FORCE = 10.0
 
-def main():
-    print("SRI TCP Client Demo.")
-    
-    # Initialize ROS node
-    rospy.init_node("wrench_signal_generate")
-    n = rospy.NodeHandle()
+def clip_force(value):
+    return np.clip(value, MIN_FORCE, MAX_FORCE)
 
-    # Create a publisher for the wrench topic
-    wrench_pub = rospy.Publisher(WRENCH_TOPIC, WrenchStamped, queue_size=5)
+def force_callback(data):
+    global force_msg
+    # Create a new WrenchStamped message with only the force values for X, Y, and Z axes
+    force_msg = WrenchStamped()
+    force_msg.header = data.header
 
-    # Initialize CSRICommManager
-    commManager = CSRICommManager()
+    # Tweaking
+    force_msg.wrench.force.x = clip_force(data.wrench.force.y)
+    force_msg.wrench.force.y = clip_force(-data.wrench.force.x)
+    force_msg.wrench.force.z = clip_force(-data.wrench.force.z)
 
-    if commManager.Init():
-        if commManager.Run():
-            pass
+    # Publish the modified message to the "/phantom/phantom/force_feedback" topic
+    force_pub.publish(force_msg)
 
-    outfile = open("/home/duan/catkin_ws/output_sensor.txt", "w")
-
-    rate = rospy.Rate(0.5)
-
-    while not rospy.is_shutdown():
-        receive_value = commManager.output
-
-        wrench_msg = WrenchStamped()
-        wrench_msg.wrench.force.x = receive_value[0]
-        wrench_msg.wrench.force.y = receive_value[2]
-        wrench_msg.wrench.force.z = receive_value[1]
-
-        print("wrench_msg.wrench.force.x =", wrench_msg.wrench.force.x)
-        print("wrench_msg.wrench.force.y =", wrench_msg.wrench.force.y)
-        print("wrench_msg.wrench.force.z =", wrench_msg.wrench.force.z)
-
-        wrench_pub.publish(wrench_msg)
-        
-        rate.sleep()
-
-    outfile.close()
-    print("Demo done!\nPress ENTER to close.")
-    raw_input()  # Wait for user input to exit
+def monitor_output(event):
+    # Log the received force values every 0.5 seconds (2Hz)
+    rospy.loginfo("Published modified force: (%.2f, %.2f, %.2f)", force_msg.wrench.force.x, force_msg.wrench.force.y, force_msg.wrench.force.z)
 
 if __name__ == '__main__':
     try:
-        main()
+        # Initialize the ROS node
+        rospy.init_node('force_feedback_publisher', anonymous=True)
+
+        # Create a subscriber for the "/sunrise/force" topic
+        force_sub = rospy.Subscriber('/sunrise/force', WrenchStamped, force_callback)
+
+        # Create a publisher for the "/phantom/phantom/force_feedback" topic
+        force_pub = rospy.Publisher('/phantom/phantom/force_feedback', WrenchStamped, queue_size=10)
+
+        # Set up a timer to monitor and log the output at 2Hz
+        rospy.Timer(rospy.Duration(0.5), monitor_output, oneshot=False)
+
+        rospy.loginfo("Force feedback publisher node is running.")
+
+        rospy.spin()
+
     except rospy.ROSInterruptException:
         pass

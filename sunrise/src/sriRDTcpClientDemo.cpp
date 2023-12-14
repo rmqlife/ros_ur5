@@ -1,13 +1,11 @@
 ﻿#include "ros/ros.h"
 #include "sunrise/sriCommDefine.h"
 #include "sunrise/sriCommManager.h"
-#include <fstream>
 #include "std_msgs/String.h"
 #include <geometry_msgs/WrenchStamped.h>
 #include <iostream>
-#include <sstream>
 
-#define WRENCH_TOPIC "/phantom/phantom/force_feedback"
+#define WRENCH_TOPIC "/sunrise/force"
 
 int main(int argc, char* argv[]) {
     float *receive_value;
@@ -25,16 +23,16 @@ int main(int argc, char* argv[]) {
 
     ros::Duration sleep_time(5.0);
     sleep_time.sleep();
-    ros::Rate loop_rate(500);
+    
+    int sample_rate = 100;
+    ros::Rate loop_rate(sample_rate);  // Set the loop rate to 100 Hz
 
     if (commManager.Init() == true) {
         if (commManager.Run() == true) {
         }
     }
 
-    std::ofstream outfile;
-    outfile.open("/home/duan/catkin_ws/output_sensor.txt");
-
+    int count = 0;
     while (ros::ok()) {
         receive_value = commManager.output;
 
@@ -45,16 +43,17 @@ int main(int argc, char* argv[]) {
         wrench_msg.wrench.torque.y = receive_value[4];
         wrench_msg.wrench.torque.z = receive_value[5];
 
-        std::cout << "Force XYZ: (" << wrench_msg.wrench.force.x << ", " << wrench_msg.wrench.force.y << ", " << wrench_msg.wrench.force.z << ") ";
-    	std::cout << "Torque XYZ: (" << wrench_msg.wrench.torque.x << ", " << wrench_msg.wrench.torque.y << ", " << wrench_msg.wrench.torque.z << ")" << std::endl;
-
+        count++;
+        if (count >sample_rate){
+            count = count - sample_rate;
+            std::cout << "Force XYZ: (" << wrench_msg.wrench.force.x << ", " << wrench_msg.wrench.force.y << ", " << wrench_msg.wrench.force.z << ") ";
+            std::cout << "Torque XYZ: (" << wrench_msg.wrench.torque.x << ", " << wrench_msg.wrench.torque.y << ", " << wrench_msg.wrench.torque.z << ")" << std::endl;
+        }
         wrench_pub.publish(wrench_msg);
         ros::spinOnce();
         loop_rate.sleep();
     }
 
-    outfile.close();
-    std::cout << "Demo done!" << std::endl;
     std::cout << "Press ENTER to close." << std::endl;
 
     getchar();
