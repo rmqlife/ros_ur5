@@ -1,87 +1,62 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+
 import rospy
+from geometry_msgs.msg import WrenchStamped
+from moveit_commander import MoveGroupCommander
+from util import rad2deg, deg2rad
 import numpy as np
-from sensor_msgs.msg import JointState
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-import sys
-from util import rad2deg, deg2rad, swap_order, reverse_sign
-from shake import publish_joint_trajectory
 
-# Global variable to store joint names and positions
-joint_names = []
-ur5_joint_publisher = None
+# Global variable to store the force values
+force = None
 
-# Define a global variable to store the initial joint positions
-initial_omni_joints = None
-current_omni_joints = []
-initial_robot_joints = None
-current_robot_joints = []
+def force_callback(data):
+    global force
+    # Extract force values for X, Y, and Z axes
+    force_x = data.wrench.force.x
+    force_y = data.wrench.force.y
+    force_z = data.wrench.force.z
+    force = [force_x, force_y, force_z]
 
-def robot_joint_callback(data):
-    # Store the received joint states in the global variables
-    global joint_names, current_robot_joints, initial_robot_joints
-    joint_names = data.name
-    current_robot_joints = np.array(data.position)
+def set_robot_pose(arm, pose):
+    arm.set_pose_target(pose)
+    arm.go()
 
-    if initial_robot_joints is None:
-        initial_robot_joints = current_robot_joints.copy()
-        rospy.loginfo("Initial Robot States: %s", initial_robot_joints)
-        return
-
-    pass
-
-def omni_joint_callback(data):
-    global initial_omni_joints, current_omni_joints
-    current_omni_joints = np.array(data.position)
-
-    if initial_omni_joints is None:
-        initial_omni_joints = current_omni_joints.copy()
-        rospy.loginfo("Initial Omni States: %s", initial_omni_joints)
-        return
-
-    pass
+def get_robot_pose(arm):
+    # Get the current end-effector pose
+    current_pose = arm.get_current_pose().pose
+    return current_pose
 
 if __name__ == '__main__':
     try:
-        # Initialize the ROS node
-        rospy.init_node('ur5_shake', anonymous=True)
-        omni_joint_subscriber = rospy.Subscriber('/phantom/phantom/joint_states', JointState, omni_joint_callback)
+        rospy.init_node('ur5_reset_position', anonymous=True)
+        # Initialize MoveIt! commander
+        shake_delta = 0.01  # Adjust the value as needed
 
-        # Create a subscriber to the '/joint_states' topic
-        robot_joint_subscriber = rospy.Subscriber('/joint_states', JointState, robot_joint_callback)
+        # Create a MoveGroupCommander for the UR5 robot
+        arm = MoveGroupCommander("manipulator")
 
-        # Wait for the subscriber to receive joint names
-        while not rospy.is_shutdown() and not joint_names:
-            rospy.sleep(0.1)
-        print(joint_names)
+        # Create a subscriber for the "/phantom/phantom/force_feedback" topic
+        force_sub = rospy.Subscriber('/phantom/phantom/force_feedback', WrenchStamped, force_callback)
 
-        # Create a publisher for the '/scaled_pos_joint_traj_controller/command' topic
-        pub = rospy.Publisher('/scaled_pos_joint_traj_controller/command', JointTrajectory, queue_size=10)
+        # Define the target pose incrementally based on force feedback
+        init_pose = get_robot_pose(arm)
 
         while not rospy.is_shutdown():
-            print("runnning")
+            if force is not None:
+                force_magnitude = np.linalg.norm(force)
 
-            print("robot at", rad2deg(current_robot_joints))
-            delta_robot_joints = current_robot_joints - initial_robot_joints
-            print("robot delta is", rad2deg(delta_robot_joints))
-
-            print("omni at", rad2deg(current_omni_joints))
-            delta_omni_joints = current_omni_joints - initial_omni_joints
-            print('omni delta is', rad2deg(delta_omni_joints))
-
-            # switch the unwanted order:
-            delta_omni_joints = swap_order(delta_omni_joints, j=0, k=2)
-            delta_omni_joints = swap_order(delta_omni_joints, j=3, k=4)
+                if force_magnitude > 2:
+                    current_pose = get_robot_pose(arm)
+                    force_vector = np.array(force)
+                    # Adjust the pose based on the force feedback (you can modify this logic)
+                    pose_adjustment = shake_delta * force_vector
+                    new_pose = init_pose
+                    new_pose.position.x = current_pose.position.x + pose_adjustment[1]
+                    new_pose.position.y = current_pose.position.y - pose_adjustment[0]
+                    new_pose.position.z = current_pose.position.z + pose_adjustment[2]
+                    
+                    set_robot_pose(arm, new_pose)
+            rospy.sleep(0.02)
             
-            delta_omni_joints = reverse_sign(delta_omni_joints, j=0)
-            delta_omni_joints = reverse_sign(delta_omni_joints, j=1)
-            # delta_omni_joints = reverse_sign(delta_omni_joints, j=2)
-            
-            robot_joints = initial_robot_joints + delta_omni_joints
-            
-            publish_joint_trajectory(pub, joint_names, robot_joints)
-            rospy.sleep(0.1)
-
     except rospy.ROSInterruptException:
         pass
-

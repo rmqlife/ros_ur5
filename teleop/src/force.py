@@ -22,7 +22,7 @@ def force_callback(data):
     force_msg.wrench.force.x = clip_force(data.wrench.force.y)
     force_msg.wrench.force.y = clip_force(-data.wrench.force.x)
     force_msg.wrench.force.z = clip_force(-data.wrench.force.z)
-
+    
     # Publish the modified message to the "/phantom/phantom/force_feedback" topic
     force_pub.publish(force_msg)
 
