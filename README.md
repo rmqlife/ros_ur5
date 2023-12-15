@@ -1,13 +1,23 @@
-# ur5 slave demo environment
-source ~/catkin_ur5/devel/setup.zsh
+#  Reference 
 
-# ur5 ros demo
-alias ur5_driver="roslaunch ur_robot_driver ur5_bringup.launch limited:=true robot_ip:=192.168.0.100"
+https://github.com/hku-mars/FAST_LIO
+https://github.com/ZJU-FAST-Lab/ego-planner
 
-alias ur5_moveit="roslaunch ur5_moveit_config moveit_planning_execution.launch limited:=true"
+https://github.com/qhlai/hl_ws/tree/master/jaka
 
-alias ur5_slave="rosrun slave_ur slave_ur"
+# R3LIVEE
+R3LIVE: A Robust, Real-time, RGB-colored, LiDAR-Inertial-Visual tightly-coupled state Estimation and mapping package
+https://ieeexplore.ieee.org/document/9811935
+https://github.com/hku-mars/r3live
 
-alias omni_driver="roslaunch omni_common omni_state.launch"
+# RTabMAP
+http://wiki.ros.org/rtabmap_ros/TutorialsNoetic/HandHeldMapping
+http://wiki.ros.org/rtabmap
+https://github.com/introlab/rtabmap_ros
+https://blog.csdn.net/weixin_44580210/article/details/89789416
+https://github.com/introlab/rtabmap/wiki/Installation#ubuntu
 
-alias ur5_rviz="roslaunch ur5_moveit_config moveit_rviz.launch config:=true"
+# Realsense
+
+D345i相机安装完驱动提示Cannot access /sys/class/video4linux
+https://blog.csdn.net/qq_45049500/article/details/130035335

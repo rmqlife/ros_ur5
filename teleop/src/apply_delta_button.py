@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-import rospy
+import rospy, rosbag
 import numpy as np
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from omni_msgs.msg import OmniButtonEvent
 from util import rad2deg, deg2rad, swap_order, reverse_sign
-from shake import publish_joint_trajectory
+from shake import to_joint_trajectory, robot_pub_topic, 
 from reset import RESET_POSE
 
 # Global variables
@@ -68,7 +68,7 @@ if __name__ == '__main__':
         print(joint_names)
 
         pub = rospy.Publisher('/scaled_pos_joint_traj_controller/command', JointTrajectory, queue_size=0)
-
+        bag = rosbag.Bag('joint_trajectory.bag', 'w')
         while not rospy.is_shutdown():
             if omni_flag and initial_omni_joints is not None and initial_robot_joints is not None:
                 delta_omni_joints = current_omni_joints - initial_omni_joints
@@ -77,6 +77,8 @@ if __name__ == '__main__':
                 delta_omni_joints = swap_order(delta_omni_joints, j=3, k=4)
                 delta_omni_joints = reverse_sign(delta_omni_joints, j=0)
                 delta_omni_joints = reverse_sign(delta_omni_joints, j=1)
+                # delta_omni_joints = reverse_sign(delta_omni_joints, j=3)
+                # delta_omni_joints = reverse_sign(delta_omni_joints, j=4)
 
                 robot_joints = initial_robot_joints + delta_omni_joints
 
@@ -85,7 +87,9 @@ if __name__ == '__main__':
 
                 # clip it
                 robot_joints = validate_robot_joints(robot_joints)
-                publish_joint_trajectory(pub, joint_names, robot_joints)
+                (pub, joint_names, robot_joints)
+
+                bag.write('/scaled_pos_joint_traj_controller/command', publish_joint_trajectory(pub, joint_names, robot_joints))
 
             elif reset_flag:
                 print("resetting ")

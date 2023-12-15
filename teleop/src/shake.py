@@ -15,8 +15,10 @@ def robot_joint_callback(data):
     joint_names = data.name
     current_joint_positions = data.position
 
+def init_robot_pub():
+    return rospy.Publisher('/scaled_pos_joint_traj_controller/command', JointTrajectory, queue_size=10)
 
-def publish_joint_trajectory(pub, joint_names, joint_positions):
+def to_joint_trajectory(joint_names, joint_positions):
     if not joint_names:
         rospy.logwarn("No joint names available yet. Waiting for joint_states message.")
         return
@@ -40,9 +42,7 @@ def publish_joint_trajectory(pub, joint_names, joint_positions):
 
     # Append the JointTrajectoryPoint to the trajectory
     joint_traj.points.append(point)
-
-    # Publish the JointTrajectory message
-    pub.publish(joint_traj)
+    return joint_traj
 
 if __name__ == '__main__':
     try:
@@ -57,7 +57,7 @@ if __name__ == '__main__':
             rospy.sleep(0.1)
 
         # Create a publisher for the '/scaled_pos_joint_traj_controller/command' topic
-        pub = rospy.Publisher('/scaled_pos_joint_traj_controller/command', JointTrajectory, queue_size=10)
+        pub = init_robot_pub()
 
         shake_delta = 1
 
@@ -72,7 +72,7 @@ if __name__ == '__main__':
                 joint_degrees[i] += j * shake_delta
                 joint_positions = deg2rad(joint_degrees)
                 print('desired rads', joint_degrees)
-                publish_joint_trajectory(pub, joint_names, joint_positions)
+                pub.publish(to_joint_trajectory(joint_names, joint_positions))
                 rospy.sleep(0.5)  # Sleep for 0.1 seconds between movements
 
     except rospy.ROSInterruptException:
