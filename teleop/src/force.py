@@ -10,6 +10,7 @@ MIN_FORCE = -10.0
 MAX_FORCE = 10.0
 
 def clip_force(value):
+    value *= 0.3
     return np.clip(value, MIN_FORCE, MAX_FORCE)
 
 def force_callback(data):
@@ -19,8 +20,8 @@ def force_callback(data):
     force_msg.header = data.header
 
     # Tweaking
-    force_msg.wrench.force.x = clip_force(data.wrench.force.y)
-    force_msg.wrench.force.y = clip_force(-data.wrench.force.x)
+    force_msg.wrench.force.x = clip_force(-data.wrench.force.y)
+    force_msg.wrench.force.y = clip_force(data.wrench.force.x)
     force_msg.wrench.force.z = clip_force(-data.wrench.force.z)
     
     # Publish the modified message to the "/phantom/phantom/force_feedback" topic

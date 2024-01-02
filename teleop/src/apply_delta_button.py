@@ -8,12 +8,37 @@ from reset import RESET_POSE
 from echo_omni import myOmni
 from shake import myRobot
 
-# Function to validate robot joints within limits
-def validate_robot_joints(robot_joints, deg=45):
-    min_limits = deg2rad([pose - deg for pose in RESET_POSE])
-    max_limits = deg2rad([pose + deg for pose in RESET_POSE])
-    validated_joints = np.clip(robot_joints, min_limits, max_limits)
-    return validated_joints
+from std_msgs.msg import String
+
+class MyKeyboard:
+    def __init__(self):
+        self.pressed_keys = set()
+        
+        # Create a subscriber to receive keyboard input
+        rospy.Subscriber('keyboard_input', String, self.keyboard_callback)
+
+        self.volume = 50
+        self.step = 5
+    def keyboard_callback(self, data):
+        key_str = data.data
+        if key_str:
+            self.pressed_keys.add(key_str)
+            rospy.loginfo(f"Key pressed: {key_str}")
+
+            if key_str in ['q', 'w']:
+                if key_str == 'q':
+                    self.volume += self.step
+                
+                if key_str == 'w':
+                    self.volume -= self.step
+
+                # Corrected the volume check
+                if self.volume > 100:
+                    self.volume = 100
+                elif self.volume < 0:
+                    self.volume = 0
+
+                print('volume', self.volume)
 
 if __name__ == '__main__':
     try:
@@ -23,6 +48,8 @@ if __name__ == '__main__':
 
         my_robot = myRobot()  # Initialize the robot object
         initial_robot_joints = my_robot.joint_positions
+
+        my_keyboard = MyKeyboard()
 
         print('press gray button to start function')
         while not rospy.is_shutdown():
@@ -44,8 +71,7 @@ if __name__ == '__main__':
                 delta_omni_joints = reverse_sign(delta_omni_joints, j=0)
                 delta_omni_joints = reverse_sign(delta_omni_joints, j=1)
 
-                robot_joints = initial_robot_joints + delta_omni_joints
-                robot_joints = validate_robot_joints(robot_joints)
+                robot_joints = initial_robot_joints + delta_omni_joints*(my_keyboard.volume/100.0)
                 
                 my_robot.move_joints(robot_joints)
 

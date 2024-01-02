@@ -4,8 +4,7 @@ from util import rad2deg, deg2rad  # Import your rad2deg and deg2rad functions
 from shake import myRobot
 
 # reset pose
-RESET_POSE = [90, -90, -180, 180, 270, 180]
-# RESET_POSE = [90, -90, -180, 270, 270, 180]
+RESET_POSE = [-180, -90, 90, 270, 270, 180]
 
 if __name__ == '__main__':
     try:

@@ -2,8 +2,12 @@
 import rospy
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from sensor_msgs.msg import JointState
-from util import rad2deg, deg2rad
+from util import rad2deg, deg2rad,swap_order
 import numpy as np
+
+
+# def moveit_joints_order_swap(joints):
+#     return 
 
 class myRobot:
     def __init__(self):
@@ -24,6 +28,9 @@ class myRobot:
         # Store the received joint states in the class variables
         self.joint_names = data.name
         self.joint_positions = np.array(data.position)
+        # swap 
+        self.joint_positions = swap_order(self.joint_positions, 0, 2)
+
 
     def move_joints(self, joint_positions):
         if not self.joint_names:
@@ -36,6 +43,7 @@ class myRobot:
 
         # Create a JointTrajectory message
         joint_traj = JointTrajectory()
+        self.joint_positions = swap_order(joint_positions, 0, 2)
 
         # Set the joint names from the received message
         joint_traj.joint_names = self.joint_names
@@ -56,11 +64,11 @@ if __name__ == '__main__':
         rospy.init_node('ur5_shake_test', anonymous=True)
 
         my_robot = myRobot()  # Initialize the robot object
-        shake_delta = 1
+        shake_delta = 2
         
         joint_degrees = rad2deg(my_robot.joint_positions)
 
-        for i in range(len(joint_degrees)):
+        for i in range(0, len(joint_degrees)):
             for j in [-1, 1]:
                 joint_degrees[i] += j * shake_delta
                 joint_positions = deg2rad(joint_degrees)
