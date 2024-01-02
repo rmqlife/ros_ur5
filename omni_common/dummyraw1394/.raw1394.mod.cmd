@@ -1,0 +1,1 @@
+cmd_/home/rmqlife/work/catkin_ur5/src/omni_common/dummyraw1394/raw1394.mod := { echo  /home/rmqlife/work/catkin_ur5/src/omni_common/dummyraw1394/raw1394.o;  echo; } > /home/rmqlife/work/catkin_ur5/src/omni_common/dummyraw1394/raw1394.mod

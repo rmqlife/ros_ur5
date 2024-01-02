@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/zsh
 
 FILENAME=$(basename "$0")
 usage()

@@ -1,0 +1,1 @@
+cmd_/home/rmqlife/work/catkin_ur5/src/omni_common/dummyraw1394/modules.order := {   echo /home/rmqlife/work/catkin_ur5/src/omni_common/dummyraw1394/raw1394.ko; :; } | awk '!x[$$0]++' - > /home/rmqlife/work/catkin_ur5/src/omni_common/dummyraw1394/modules.order

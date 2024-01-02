@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
         my_robot.move_joints(deg2rad(current_joint_degrees))  # Corrected parentheses here
         rospy.sleep(0.5)
-        my_robot.move_joints(deg2rad(RESET_POSE))  # Corrected parentheses here
+        my_robot.move_joints(deg2rad(RESET_POSE_0))  # Corrected parentheses here
         rospy.sleep(0.5)
     except rospy.ROSInterruptException:
         pass
