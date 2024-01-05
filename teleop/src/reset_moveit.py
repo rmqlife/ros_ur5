@@ -2,7 +2,7 @@
 import rospy
 from util import deg2rad,rad2deg,swap_order
 from moveit_commander import MoveGroupCommander
-from reset import *
+from reset import RESET_POSE
 import numpy as np
 
 class MyRobotMoveit:
@@ -14,8 +14,7 @@ class MyRobotMoveit:
         self.arm.go()
 
     def get_joints(self):
-        current_joint_positions = self.arm.get_current_joint_values()
-        return np.array(current_joint_positions)
+        return np.array(self.arm.get_current_joint_values())
 
     def get_pose(self):
         return self.arm.get_current_pose().pose
@@ -43,7 +42,6 @@ if __name__ == '__main__':
         print(rad2deg(current_joints))
         print(target_joints)
         # Define the target joint values for reset
-
 
         robot.set_joints(deg2rad(target_joints))
         rospy.sleep(0.5)
