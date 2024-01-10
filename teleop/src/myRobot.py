@@ -24,7 +24,7 @@ class MyRobot(MyBag):  # Inherit from MyBag
         while not rospy.is_shutdown() and not self.joint_names:
             rospy.sleep(0.1)
         rospy.sleep(0.5)
-        
+
     def subscriber_callback(self, data):
         
         super().subscriber_callback(data)
@@ -61,28 +61,29 @@ class MyRobot(MyBag):  # Inherit from MyBag
         joint_traj.points.append(point)
         self.pub.publish(joint_traj)  # Call the publish method
 
+def replay_bag(robot, bagname):
+    from myBagReader import MyBagReader
+    bag_reader = MyBagReader(bagname)
 
+    time_interval = 0.1
+    data = bag_reader.sample_attribute(topic='/joint_states', attribute='position', time_interval=time_interval)
+    
+    for i, joints in enumerate(data):
+        print("moving to", joints)
+        if i==0: 
+            duration=1
+        else:
+            duration=time_interval
+        robot.move_joints(joints, duration=duration)
+        rospy.sleep(duration)
+        print('now at', robot.get_joints())
+    pass
 
 if __name__ == '__main__':
     try:
         rospy.init_node('ur5_shake_test', anonymous=True)
-        from myBagReader import MyBagReader
-        bag_reader = MyBagReader(sys.argv[1])
-        
-        time_interval = 0.1
-        data = bag_reader.sample_attribute(topic='/joint_states', attribute='position', time_interval=time_interval)
-        
-        robot = MyRobot()
-        
-        for i, joints in enumerate(data):
-            print("moving to", joints)
-            if i==0: 
-                duration=1
-            else:
-                duration=time_interval
-            robot.move_joints(joints, duration=duration)
-            print('now at', robot.get_joints())
-
+        robot =  MyRobot()
+        replay_bag(robot, sys.argv[1])
     except rospy.ROSInterruptException:
         pass
 

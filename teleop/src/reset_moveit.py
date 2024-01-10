@@ -2,14 +2,16 @@
 import rospy
 from util import deg2rad,rad2deg,swap_order
 from moveit_commander import MoveGroupCommander
-from reset import RESET_POSE
+from reset import RESET_POSE_RAD
 import numpy as np
+
+RESET_POSE = swap_order(RESET_POSE_RAD, 0, 2)
 
 class MyRobotMoveit:
     def __init__(self, group_name="manipulator"):
         self.arm = MoveGroupCommander(group_name)
 
-    def set_joints(self, robot_radians):
+    def move_joints(self, robot_radians):
         self.arm.set_joint_value_target(robot_radians)
         self.arm.go()
 
@@ -37,13 +39,12 @@ if __name__ == '__main__':
         robot.arm.clear_trajectory_constraints()
         robot.arm.clear_path_constraints()
         current_joints = robot.get_joints()
-        target_joints = RESET_POSE
 
-        print(rad2deg(current_joints))
-        print(target_joints)
+        print(current_joints)
+        print(RESET_POSE)
         # Define the target joint values for reset
 
-        robot.set_joints(deg2rad(target_joints))
+        robot.move_joints(RESET_POSE)
         rospy.sleep(0.5)
 
     except rospy.ROSInterruptException:
