@@ -9,6 +9,7 @@ from myOmni import MyOmni
 from myRobot import MyRobot
 
 
+hold_to_control=False
 if __name__ == '__main__':
     try:
         rospy.init_node('apply_delta', anonymous=True)
@@ -16,18 +17,28 @@ if __name__ == '__main__':
         my_robot = MyRobot()  # Initialize the robot object
         print('press gray button to start function')
         while not rospy.is_shutdown():
+            if hold_to_control:
+                teleop_sign = my_omni.gray_button
+            else:
+                teleop_sign = my_omni.gray_button_flag
+
             # Check if the gray button state has changed and recording is not active
-            if my_omni.gray_button and not my_omni.recording_flag:
+            if teleop_sign and not my_omni.recording_flag:
                 my_omni.start_bag_recording()
                 my_robot.start_bag_recording()
                 initial_omni_joints = my_omni.joint_positions
                 initial_robot_joints = my_robot.joint_positions
 
             # Check if the gray button state has changed and recording is active
-            elif not my_omni.gray_button and my_omni.recording_flag:
+            elif not teleop_sign and my_omni.recording_flag:
                 my_omni.stop_bag_recording()
                 my_robot.stop_bag_recording()
-                
+            
+            
+            # control the 
+            if my_omni.white_button_flag:
+                print('clicked white button')
+
             # Print joint states while recording is active
             if my_omni.recording_flag:
                 omni_joints = my_omni.get_joints()
