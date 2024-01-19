@@ -10,37 +10,38 @@ from myRobot import MyRobot
 
 
 hold_to_control=False
+
+from myIO import MyIO
+
 if __name__ == '__main__':
     try:
         rospy.init_node('apply_delta', anonymous=True)
         my_omni = MyOmni()  # Initialize the omni object
         my_robot = MyRobot()  # Initialize the robot object
+        my_io = MyIO(1, 16)
+        teleop_sign = False
+
         print('press gray button to start function')
         while not rospy.is_shutdown():
+
+            teleop_sign_prev = teleop_sign
             if hold_to_control:
                 teleop_sign = my_omni.gray_button
             else:
                 teleop_sign = my_omni.gray_button_flag
-
+            
             # Check if the gray button state has changed and recording is not active
-            if teleop_sign and not my_omni.recording_flag:
-                my_omni.start_bag_recording()
+            if teleop_sign and not teleop_sign_prev:
                 my_robot.start_bag_recording()
                 initial_omni_joints = my_omni.joint_positions
                 initial_robot_joints = my_robot.joint_positions
 
             # Check if the gray button state has changed and recording is active
-            elif not teleop_sign and my_omni.recording_flag:
-                my_omni.stop_bag_recording()
+            elif not teleop_sign and teleop_sign_prev:
                 my_robot.stop_bag_recording()
-            
-            
-            # control the 
-            if my_omni.white_button_flag:
-                print('clicked white button')
-
+                
             # Print joint states while recording is active
-            if my_omni.recording_flag:
+            if teleop_sign:
                 omni_joints = my_omni.get_joints()
                 print("robot at", rad2deg(my_robot.joint_positions))
                 print("omni at", rad2deg(my_omni.joint_positions))
@@ -58,14 +59,13 @@ if __name__ == '__main__':
                 dist = np.linalg.norm(delta_omni_joints)
                 print('distance', dist)
                 my_robot.move_joints(robot_joints, duration=0.1)
-
-            else: # clean the initial position of omni phantom
-                init_flag = False
-                if my_omni.white_button_flag:
-                    print('resetting robot')
-                    my_omni.white_button_flag = not my_omni.white_button_flag
-                    my_robot.move_joints(RESET_POSE_RAD, duration=1)
             
+            # control the gripper
+            if my_omni.white_button_flag:
+                my_omni.white_button_flag = not my_omni.white_button_flag
+                print('clicked white button')
+                my_io.toggle_state()
+
             rospy.sleep(0.01)
 
     except rospy.ROSInterruptException:

@@ -2,6 +2,7 @@
 import rospy
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from sensor_msgs.msg import JointState
+from control_msgs.msg import JointTrajectoryControllerState
 from util import rad2deg, deg2rad, swap_order
 import numpy as np
 from myOmni import MyBag  # Import MyBag class
@@ -9,41 +10,30 @@ import sys
 
 class MyRobot(MyBag):  # Inherit from MyBag
     def __init__(self):
-        self.topic = '/joint_states'  # Define the topic for reading joint states
+        self.topic = '/scaled_pos_joint_traj_controller/state'  # Define the topic for reading joint states
         super().__init__(self.topic, filename="ur_joints")  # Initialize the MyBag base class
 
         # Create a subscriber to the '/joint_states' topic
-        self.robot_joint_subscriber = rospy.Subscriber(self.topic, JointState, self.subscriber_callback)
+        self.robot_joint_subscriber = rospy.Subscriber(self.topic, JointTrajectoryControllerState, self.subscriber_callback)
         self.pub = rospy.Publisher('/scaled_pos_joint_traj_controller/command', JointTrajectory, queue_size=10)
 
         # Initialize joint names and positions
-        self.joint_names = []
         self.current_joint_positions = []
 
         # Wait for the subscriber to receive joint names
-        while not rospy.is_shutdown() and not self.joint_names:
-            rospy.sleep(0.1)
         rospy.sleep(0.5)
 
     def subscriber_callback(self, data):
         
         super().subscriber_callback(data)
-
-        self.joint_names = data.name
-        self.joint_positions = np.array(data.position)
-
+        # print(data.actual)
+        self.joint_positions = np.array(data.actual.positions)
+        self.joint_names = data.joint_names
+        
     def get_joints(self):
         return self.joint_positions
     
     def move_joints(self, joint_positions, duration=0.1):
-        if not self.joint_names:
-            rospy.logwarn("No joint names available yet. Waiting for joint_states message.")
-            return
-
-        if len(joint_positions) != len(self.joint_names):
-            rospy.logerr("Joint positions do not match the number of joint names.")
-            return
-
         # Create a JointTrajectory message
         joint_traj = JointTrajectory()
 
@@ -53,7 +43,7 @@ class MyRobot(MyBag):  # Inherit from MyBag
         # Create a JointTrajectoryPoint for the desired joint positions
         point = JointTrajectoryPoint()
         point.positions = joint_positions
-
+        print(point.positions)
         # Set the time from start for this point
         point.time_from_start = rospy.Duration(duration)
 

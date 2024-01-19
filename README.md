@@ -4,6 +4,9 @@ https://github.com/ZJU-FAST-Lab/ego-planner
 
 https://github.com/qhlai/hl_ws/tree/master/jaka
 
+# Gripper
+https://answers.ros.org/question/387731/universal-robot-digital-tool-io/
+
 # Omni Setup
 ## setup_files/99-3dsystems.rules
 Need to create a Udev rule to specify the ownership and permissions for the USB device. 
