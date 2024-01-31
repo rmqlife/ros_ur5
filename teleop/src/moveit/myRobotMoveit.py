@@ -26,7 +26,7 @@ class MyRobotMoveit:
             jump_threshold=0,
             avoid_collisions=True
         )
-        self.arm.execute(plan, wait=False)
+        self.arm.execute(plan, wait=True)
 
 
 # maybe we can use it as a moveit status publisher, by use it to control the robot

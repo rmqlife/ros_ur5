@@ -46,20 +46,20 @@ if __name__=="__main__":
     pt_lift = np.array([0, 0, +0.1])
 
     from strokes.kanji_strokes import load_strokes, normalize_strokes, save_strokes, round_strokes
-    strokes = load_strokes('strokes/贾.txt')
+    strokes = load_strokes('strokes/jia-1.txt')
     strokes = normalize_strokes(strokes, 0.1, 0.1, True)
 
     # 2d to 3d
-    poses = stroke_to_pose(strokes, pt_drop, pt_lift) 
-    for p in poses:
-        print(p)
-    # save_strokes(poses, 'poses.txt')
+    for s in strokes[:3]:
+        poses = stroke_to_pose([s], pt_drop, pt_lift) 
+        for p in poses:
+            print(p)
+        print('exe')
+        waypoints = pose2waypoint(poses, current_pose.orientation)
 
-    waypoints = pose2waypoint(poses, current_pose.orientation)
-    waypoints.insert(0, current_pose)
-
-
-    # execute
-    robot.set_trajectory(waypoints=waypoints)
-
+        # execute
+        
+        robot.set_trajectory(waypoints=waypoints)
+        
+        
     # print(waypoints[3:6])

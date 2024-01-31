@@ -18,7 +18,7 @@ if __name__ == '__main__':
             for i in range(len(robot_radians)):
                 for j in [-1, 1]:
                     robot_degrees[i] += j * shake_delta
-                    robot.set_joints(deg2rad(robot_degrees))
+                    robot.move_joints(deg2rad(robot_degrees))
                 rospy.sleep(0.1)
 
     except rospy.ROSInterruptException:
