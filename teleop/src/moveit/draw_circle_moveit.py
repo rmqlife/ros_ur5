@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 
 import rospy
-import moveit_commander
-import moveit_msgs.msg
-from geometry_msgs.msg import Pose, Point
+from geometry_msgs.msg import Pose
 from shake_moveit import MyRobotMoveit
 import math
 
-def circle_points(current_pose, radius=0.05, num_points=20):
+def circle_points(current_pose, radius=0.1, num_points=20):
     waypoints = []
     euler_angles = (0.0, 0.0, 0.0)
 
@@ -64,7 +62,8 @@ def main():
         rospy.init_node('draw_circle_moveit', anonymous=True)
         arm = MyRobotMoveit()
         current_pose = arm.get_pose()
-        waypoints = rectangle_points(current_pose)
+        waypoints = circle_points(current_pose)
+        waypoints += waypoints 
         waypoints.append(current_pose)
         arm.set_trajectory(waypoints)
 

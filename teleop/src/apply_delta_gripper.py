@@ -4,7 +4,6 @@ import numpy as np
 from sensor_msgs.msg import JointState
 from util import rad2deg, deg2rad, swap_order, reverse_sign
 
-from reset import RESET_POSE_RAD # Import RESET_POSE from your module
 from myOmni import MyOmni
 from myRobot import MyRobot
 

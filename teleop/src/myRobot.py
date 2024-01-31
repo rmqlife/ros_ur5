@@ -24,12 +24,11 @@ class MyRobot(MyBag):  # Inherit from MyBag
         rospy.sleep(0.5)
 
     def subscriber_callback(self, data):
-        
         super().subscriber_callback(data)
         # print(data.actual)
         self.joint_positions = np.array(data.actual.positions)
         self.joint_names = data.joint_names
-        
+
     def get_joints(self):
         return self.joint_positions
     

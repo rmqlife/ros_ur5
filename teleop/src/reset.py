@@ -1,21 +1,27 @@
 #!/usr/bin/env python3
-import rospy
-from util import rad2deg, deg2rad  # Import your rad2deg and deg2rad functions
+import rospy, sys
 from myRobot import MyRobot
-
-# reset pose
-RESET_POSE_DEG = [-180, -90, 90, 270, 270, 90]
-RESET_POSE_RAD = deg2rad(RESET_POSE_DEG)
+from myConfig import MyConfig # Import the JointConfig class
 
 if __name__ == '__main__':
     try:
         rospy.init_node('reset', anonymous=True)
         my_robot = MyRobot()  # Initialize the robot object
 
-        joints = my_robot.get_joints()
-        print("current robot degrees", joints)
-        print('reset pose', RESET_POSE_RAD)
+        # Create a JointConfig instance
+        joint_configs = MyConfig()
 
-        my_robot.move_joints(RESET_POSE_RAD, duration=1)  # Corrected parentheses here
+        if len(sys.argv) > 1:
+            config_name = sys.argv[1]
+        else:
+            config_name = 'reset'
+
+
+        # Check if the reset pose is already saved, and load it if available
+        if joint_configs.get(config_name):
+            reset_pose = joint_configs.get(config_name)
+            print("Loaded reset pose:", reset_pose)
+            my_robot.move_joints(reset_pose, duration=2)
+        
     except rospy.ROSInterruptException:
         pass
