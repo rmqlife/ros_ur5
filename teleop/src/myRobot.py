@@ -53,10 +53,12 @@ class MyRobot(MyBag):  # Inherit from MyBag
 def replay_bag(robot, bagname):
     from myBagReader import MyBagReader
     bag_reader = MyBagReader(bagname)
-
+    bag_reader.info()
+    # print(bag_reader.info())
     time_interval = 0.1
-    data = bag_reader.sample_attribute(topic='/joint_states', attribute='position', time_interval=time_interval)
+    data = bag_reader.sample_attribute(topic='/scaled_pos_joint_traj_controller/state', time_interval=time_interval)
     
+    print(data)
     for i, joints in enumerate(data):
         print("moving to", joints)
         if i==0: 

@@ -44,7 +44,7 @@ class MyBagReader:
             print("--------------------")
             break
 
-    def sample_attribute(self, topic, attribute, time_interval):
+    def sample_attribute(self, topic, time_interval):
         ret = []
         try:
             # Get the start and end times of the bag
@@ -59,10 +59,9 @@ class MyBagReader:
                 # Read the message at the current time
                 for read_topic, msg, timestamp in self.bag.read_messages(topics=None, start_time=sec2time(current_time), end_time=sec2time(current_time + time_interval)):
                     # Process the message data as needed
-                    if read_topic==topic and hasattr(msg, attribute):
+                    if read_topic==topic:
                         # Extract and print the position
-                        data = msg.position
-                        # print(f"Received '{attribute}' on topic '{topic}' at time {timestamp}: {data}")
+                        data = msg.actual.positions
                         ret.append(data)
                     break
                 # Increment the current time by the time interval
@@ -78,11 +77,12 @@ if __name__ == '__main__':
         rospy.init_node('read_rosbag_at_interval', anonymous=True)
 
         # Create a MyBagReader object
-        bag_reader = MyBagReader('bags/ur_joints@20240105-121949.bag')
+        import sys
+        bag_reader = MyBagReader(sys.argv[1])
 
         # Specify the time interval for sampling (0.1 seconds in this example)
         print(bag_reader.info())
-        data = bag_reader.sample_attribute(topic='/joint_states', attribute='position', time_interval=0.1)
+        data = bag_reader.sample_attribute(topic='/scaled_pos_joint_traj_controller/state', time_interval=0.1)
         print(data)
         
     except rospy.ROSInterruptException:

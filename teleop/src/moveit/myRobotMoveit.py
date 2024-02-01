@@ -22,12 +22,11 @@ class MyRobotMoveit:
         #  The jump_threshold specifies the maximum distance in configuration space between consecutive points in the resultingpath;
         (plan, fraction) = self.arm.compute_cartesian_path(
             waypoints=waypoints,
-            eef_step=0.1,
+            eef_step=0.005,
             jump_threshold=0,
-            avoid_collisions=True
+            avoid_collisions=False
         )
         self.arm.execute(plan, wait=True)
-
 
 # maybe we can use it as a moveit status publisher, by use it to control the robot
 if __name__ == '__main__':

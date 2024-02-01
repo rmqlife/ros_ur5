@@ -7,9 +7,6 @@ from util import rad2deg, deg2rad, swap_order, reverse_sign
 from myOmni import MyOmni
 from myRobot import MyRobot
 
-
-hold_to_control=False
-
 from myIO import MyIO
 
 if __name__ == '__main__':
@@ -19,7 +16,8 @@ if __name__ == '__main__':
         my_robot = MyRobot()  # Initialize the robot object
         my_io = MyIO(1, 16)
         teleop_sign = False
-
+        hold_to_control=False
+    
         print('press gray button to start function')
         while not rospy.is_shutdown():
 
