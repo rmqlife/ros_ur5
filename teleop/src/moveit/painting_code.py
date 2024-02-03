@@ -43,14 +43,13 @@ def pose2waypoint(poses, orientation):
         waypoints.append(new_pose)
     return waypoints
 
-if __name__ == "__main__":
+
+def run(filename):
     rospy.init_node('painting', anonymous=True)
     robot = MyRobotMoveit()
     
     joint_configs = MyConfig('../joint_configs.json')
-    robot.move_joints(joint_configs.get('paint1'))
-
-    filename = sys.argv[1]
+    robot.move_joints(joint_configs.get('paint'))
 
     current_pose = robot.get_pose()
     # position to write
@@ -64,3 +63,9 @@ if __name__ == "__main__":
         poses = stroke_to_pose([s], pt_drop, pt_lift, gaussian=True)
         waypoints = pose2waypoint(poses, current_pose.orientation)
         robot.set_trajectory(waypoints)
+
+
+
+if __name__ == "__main__":
+    run(sys.argv[1])
+
